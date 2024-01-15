@@ -1,0 +1,586 @@
+use crate::sea_orm::Statement;
+use sea_orm_migration::prelude::*;
+use std::time;
+
+#[derive(DeriveMigrationName)]
+pub struct Migration;
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .create_table(
+                Table::create()
+                    .table(User::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(User::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(User::Identifier)
+                            .string()
+                            .string_len(36)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(User::Username)
+                            .string()
+                            .not_null()
+                            .string_len(100)
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(User::Password)
+                            .string()
+                            .not_null()
+                            .string_len(100),
+                    )
+                    .col(ColumnDef::new(User::Salt).string().char_len(100).not_null())
+                    .col(
+                        ColumnDef::new(User::Disabled)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(ColumnDef::new(User::GmtCreate).integer().not_null())
+                    .col(
+                        ColumnDef::new(User::Creator)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(User::GmtModified).integer())
+                    .col(ColumnDef::new(User::Modifier).string().string_len(36))
+                    .col(ColumnDef::new(User::LastLoginAt).integer())
+                    .col(ColumnDef::new(User::Token).string().string_len(200))
+                    .comment("用户表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(UserProfile::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(UserProfile::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(UserProfile::Identifier)
+                            .string()
+                            .string_len(36)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(UserProfile::DisplayName)
+                            .string()
+                            .string_len(100),
+                    )
+                    .col(ColumnDef::new(UserProfile::GmtEntry).integer())
+                    .col(ColumnDef::new(UserProfile::GmtLeave).integer())
+                    .col(
+                        ColumnDef::new(UserProfile::Leave)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(ColumnDef::new(UserProfile::Email).string().string_len(100))
+                    .col(
+                        ColumnDef::new(UserProfile::EmailVerified)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(ColumnDef::new(UserProfile::Phone).string().string_len(20))
+                    .col(ColumnDef::new(UserProfile::Birthday).integer())
+                    .col(ColumnDef::new(UserProfile::Country).string().string_len(20))
+                    .col(
+                        ColumnDef::new(UserProfile::Province)
+                            .string()
+                            .string_len(20),
+                    )
+                    .col(ColumnDef::new(UserProfile::City).string().string_len(20))
+                    .col(
+                        ColumnDef::new(UserProfile::Address)
+                            .string()
+                            .string_len(200),
+                    )
+                    .col(ColumnDef::new(UserProfile::Pinyin).string().string_len(200))
+                    .col(ColumnDef::new(UserProfile::Avatar).string().string_len(200))
+                    .comment("用户资料表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(UserRole::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(UserRole::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(UserRole::User)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(UserRole::Role)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .index(
+                        &mut Index::create()
+                            .unique()
+                            .col(UserRole::User)
+                            .col(UserRole::Role)
+                            .to_owned(),
+                    )
+                    .comment("用户角色表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Role::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Role::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Role::Identifier)
+                            .string()
+                            .string_len(36)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Role::Name)
+                            .string()
+                            .string_len(100)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Role::Description).string().string_len(200))
+                    .col(
+                        ColumnDef::new(Role::Organization)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Role::Parent).string().string_len(36))
+                    .col(
+                        ColumnDef::new(Role::DefaultRole)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(ColumnDef::new(Role::GmtCreate).integer().not_null())
+                    .col(
+                        ColumnDef::new(Role::Creator)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Role::GmtModified).integer())
+                    .col(ColumnDef::new(Role::Modifier).string().string_len(36))
+                    .comment("角色表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(RolePermission::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(RolePermission::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(RolePermission::Role)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(RolePermission::Permission)
+                            .string()
+                            .string_len(200)
+                            .not_null(),
+                    )
+                    .index(&mut Index::create().col(RolePermission::Role).to_owned())
+                    .comment("角色权限表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Permission::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Permission::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Permission::Key)
+                            .string()
+                            .string_len(200)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Permission::Name)
+                            .string()
+                            .string_len(100)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Permission::ParentKey)
+                            .string()
+                            .string_len(200),
+                    )
+                    .col(
+                        ColumnDef::new(Permission::IsGroup)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .comment("权限表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Organization::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Organization::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Organization::Identifier)
+                            .string()
+                            .string_len(36)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Organization::Name)
+                            .string()
+                            .string_len(100)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Organization::Pinyin)
+                            .string()
+                            .string_len(100),
+                    )
+                    .col(
+                        ColumnDef::new(Organization::Public)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(
+                        ColumnDef::new(Organization::Description)
+                            .string()
+                            .string_len(200),
+                    )
+                    .col(ColumnDef::new(Organization::GmtCreate).integer().not_null())
+                    .col(
+                        ColumnDef::new(Organization::Creator)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Organization::GmtModified).integer())
+                    .col(
+                        ColumnDef::new(Organization::Modifier)
+                            .string()
+                            .string_len(36),
+                    )
+                    .comment("组织表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Team::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Team::Id)
+                            .big_unsigned()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Team::Identifier)
+                            .string()
+                            .string_len(36)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Team::Name)
+                            .string()
+                            .string_len(100)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Team::Description).string().string_len(200))
+                    .col(
+                        ColumnDef::new(Team::Organization)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Team::Public)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(ColumnDef::new(Team::Parent).string().string_len(36))
+                    .col(ColumnDef::new(Team::GmtCreate).integer().not_null())
+                    .col(
+                        ColumnDef::new(Team::Creator)
+                            .string()
+                            .string_len(36)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Team::GmtModified).integer())
+                    .col(ColumnDef::new(Team::Modifier).string().string_len(36))
+                    .col(ColumnDef::new(Team::Icon).string().string_len(200))
+                    .col(ColumnDef::new(Team::Leader).string().string_len(36))
+                    .comment("团队表")
+                    .collate("utf8mb4_unicode_ci")
+                    .to_owned(),
+            )
+            .await?;
+
+        let count = manager
+            .get_connection()
+            .query_one(Statement::from_sql_and_values(
+                manager.get_database_backend(),
+                r#"
+                select count(1) as count from `user` where `username` = 'admin';
+                 "#,
+                [],
+            ))
+            .await?
+            .map(|row| {
+                let count: i64 = row.try_get_by_index(0).unwrap();
+                count
+            });
+
+        if count.is_none() || count.unwrap() == 0 {
+            let now = time::UNIX_EPOCH.elapsed().unwrap().as_secs();
+            manager
+                .get_connection()
+                .execute(Statement::from_sql_and_values(
+                    manager.get_database_backend(),
+                    r#"
+                        INSERT INTO `user` ( `identifier`, `username`, `password`, `salt`, `disabled`, `gmt_create`, `creator`)
+                        VALUES ('4b015d28-5c1f-4c02-b255-310a33329b65', 'admin', '29e3282811524724964042cfdb54f825', '64ef53cf-9fc2-49a7-a945-2dae2470b625', 0, ?, 'system');
+                    "#,
+                    [now.into()],
+                ))
+                .await?;
+            manager
+                .get_connection()
+                .execute(Statement::from_sql_and_values(
+                    manager.get_database_backend(),
+                    r#"
+                        INSERT INTO `user_profile` ( `identifier`, `display_name`, `leave`, `email_verified`)
+                        VALUES ('4b015d28-5c1f-4c02-b255-310a33329b65', '系统管理员', false, false);
+                    "#,
+                    [],
+                ))
+                .await?;
+        }
+        Ok(())
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table(User::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(UserProfile::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(UserRole::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Role::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RolePermission::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Permission::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Organization::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Team::Table).to_owned())
+            .await?;
+        Ok(())
+    }
+}
+
+#[derive(DeriveIden)]
+enum User {
+    Table,
+    Id,
+    Identifier,
+    Username,
+    Password,
+    Salt,
+    Disabled,
+    GmtCreate,
+    Creator,
+    GmtModified,
+    Modifier,
+    LastLoginAt,
+    Token,
+}
+
+#[derive(DeriveIden)]
+enum UserProfile {
+    Table,
+    Id,
+    Identifier,
+    DisplayName,
+    GmtEntry,
+    GmtLeave,
+    Leave,
+    Email,
+    EmailVerified,
+    Phone,
+    Birthday,
+    Country,
+    Province,
+    City,
+    Address,
+    Pinyin,
+    Avatar,
+}
+
+#[derive(DeriveIden)]
+enum UserRole {
+    Table,
+    Id,
+    User,
+    Role,
+}
+#[derive(DeriveIden)]
+enum Role {
+    Table,
+    Id,
+    Identifier,
+    Name,
+    Description,
+    Organization,
+    Parent,
+    DefaultRole,
+    GmtCreate,
+    Creator,
+    GmtModified,
+    Modifier,
+}
+#[derive(DeriveIden)]
+enum Permission {
+    Table,
+    Id,
+    Key,
+    Name,
+    ParentKey,
+    IsGroup,
+}
+#[derive(DeriveIden)]
+enum RolePermission {
+    Table,
+    Id,
+    Role,
+    Permission,
+}
+#[derive(DeriveIden)]
+enum Organization {
+    Table,
+    Id,
+    Identifier,
+    Name,
+    Pinyin,
+    Public,
+    Description,
+    GmtCreate,
+    Creator,
+    GmtModified,
+    Modifier,
+}
+#[derive(DeriveIden)]
+enum Team {
+    Table,
+    Id,
+    Identifier,
+    Name,
+    Description,
+    Organization,
+    Public,
+    Parent,
+    GmtCreate,
+    Creator,
+    GmtModified,
+    Modifier,
+    Icon,
+    Leader,
+}
