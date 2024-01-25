@@ -1,16 +1,21 @@
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [workspace]
+resolver = "2"
 members = [
-    "app",
-    "domain",
+    "boot",
+    "application/interface",
+    "application/user",
+    "application/system",
+    "application/workspace",
+    "domain/common",
+    "domain/user",
+    "domain/system",
+    "domain/workspace",
     "mem-event-bus"
 ]
 
 exclude = [
     "migration"
 ]
-
 
 [profile.release]
 opt-level = 'z'
