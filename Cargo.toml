@@ -2,15 +2,15 @@
 resolver = "2"
 members = [
     "boot",
-    "application/interface",
-    "application/user",
-    "application/system",
-    "application/workspace",
-    "domain/common",
-    "domain/user",
-    "domain/system",
-    "domain/workspace",
-    "mem-event-bus"
+    "crates/application/interface",
+    "crates/application/user",
+    "crates/application/system",
+    "crates/application/workspace",
+    "crates/domain/common",
+    "crates/domain/user",
+    "crates/domain/system",
+    "crates/domain/workspace",
+    "crates/mem-event-bus"
 ]
 
 

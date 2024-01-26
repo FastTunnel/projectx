@@ -34,13 +34,13 @@ serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 toml = "0.8.8"
 
-app-interface = { path = "../application/interface" }
-app-system = { path = "../application/system" }
-app-user = { path = "../application/user" }
-app-workspace = { path = "../application/workspace" }
+app-interface = { path = "../crates/application/interface" }
+app-system = { path = "../crates/application/system" }
+app-user = { path = "../crates/application/user" }
+app-workspace = { path = "../crates/application/workspace" }
 
-domain-common = { path = "../domain/common" }
-domain-system = { path = "../domain/system" }
-domain-user = { path = "../domain/user" }
-domain-workspace = { path = "../domain/workspace" }
-mem-event-bus = { path = "../mem-event-bus" }
+domain-common = { path = "../crates/domain/common" }
+domain-system = { path = "../crates/domain/system" }
+domain-user = { path = "../crates/domain/user" }
+domain-workspace = { path = "../crates/domain/workspace" }
+mem-event-bus = { path = "../crates/mem-event-bus" }

@@ -18,15 +18,15 @@ use app_interface::user::IUserAppService;
 use app_interface::workspace::IWorkspaceAppService;
 use app_interface::{app_service, APP_STATE};
 
+use crate::api::{init_org_router, init_user_router, init_workspace_router};
 use crate::auth::{auth_middleware, handler_404, login};
 use crate::config::AppConf;
-use crate::controller::{init_org_router, init_user_router, init_workspace_router};
 
 pub mod args;
 pub mod auth;
 pub mod config;
 
-mod controller;
+mod api;
 pub mod error;
 pub mod index;
 
