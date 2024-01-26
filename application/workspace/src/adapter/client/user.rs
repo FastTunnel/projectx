@@ -25,6 +25,13 @@ impl IUserFacade for UserFacade {
         todo!()
     }
 
+    async fn query_users_by_ids(
+        &self,
+        ids: &Vec<String>,
+    ) -> error::Result<Vec<domain_workspace::model::user::User>> {
+        todo!()
+    }
+
     async fn create_role(&self, role: &mut Vec<Role>) -> error::Result<()> {
         todo!()
     }

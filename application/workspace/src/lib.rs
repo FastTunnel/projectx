@@ -1,9 +1,8 @@
-use std::any::TypeId;
 use std::sync::Arc;
 
 use app_interface::system::IConfigAppService;
 use app_interface::user::IUserAppService;
-use app_interface::{app_service, APP_STATE};
+use app_interface::APP_STATE;
 use domain_workspace::service::WorkspaceService;
 
 use crate::adapter::client::global::GlobalConfigFacade;
@@ -23,12 +22,13 @@ pub fn init_workspace_context_component() {
     let workspace_service = WorkspaceService::new(
         user_facade.clone(),
         global_config_facade.clone(),
-        space_repository,
+        space_repository.clone(),
     );
     let workspace_app_service = WorkspaceAppService::new(
         Arc::new(workspace_service),
         global_config_facade,
         user_facade,
+        space_repository,
     );
 
     let workspace_app_service_arc: Arc<dyn app_interface::workspace::IWorkspaceAppService> =

@@ -1,13 +1,17 @@
+use async_trait::async_trait;
+
+use domain_common::error;
+
 use crate::model::role::Role;
 use crate::model::setting::global::GlobalConfig;
 use crate::model::setting::template::Template;
-use async_trait::async_trait;
-use domain_common::error;
+use crate::model::user::User;
 
 #[async_trait::async_trait]
 pub trait IUserFacade: Send + Sync {
     async fn query_global_roles(&self, org_id: &str) -> error::Result<Vec<Role>>;
     async fn query_roles_by_own(&self, org_id: &str, own: &str) -> error::Result<Vec<Role>>;
+    async fn query_users_by_ids(&self, ids: &Vec<String>) -> error::Result<Vec<User>>;
     async fn create_role(&self, role: &mut Vec<Role>) -> error::Result<()>;
 }
 

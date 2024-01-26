@@ -21,21 +21,6 @@ pub async fn find_all_template(
 }
 
 #[tracing::instrument()]
-pub async fn template_detail(
-    Json(param): Json<TemplateQuery>,
-) -> error::Result<Json<Option<TemplateDTO>>> {
-    let workspace_app_service = app_service!(IWorkspaceAppService);
-    if param.template.is_none() {
-        return Ok(Json(None));
-    }
-    let template_id = param.template.unwrap();
-    let ret = workspace_app_service
-        .template_detail(&param.organization, &template_id)
-        .await?;
-    Ok(Json(ret))
-}
-
-#[tracing::instrument()]
 pub async fn create_template(
     Extension(claims): Extension<Claims>,
     Valid(Json(cmd)): Valid<Json<TemplateCreateCommand>>,

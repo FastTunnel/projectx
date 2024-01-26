@@ -20,8 +20,8 @@ pub struct Template {
     pub description: Option<String>,
     pub icon: Option<String>,
     pub enable: bool,
-
     pub organization: String,
+
     pub project_fields: Vec<Field>,
     pub project_roles: Vec<Role>,
     pub(crate) project_status_flow: Vec<FlowItem>,

@@ -21,6 +21,8 @@ axum-extra = { version = "0.9.1", features = ["typed-header"] }
 validator = { version = "0.16.1", features = ["derive"] }
 axum-valid = "0.14.0"
 
+
+
 sqlx-core = { version = "0.7.3", features = ["_rt-tokio"] }
 sea-orm = { version = "0.12.10", features = ["sqlx-mysql", "runtime-tokio", "macros", "with-chrono", ] }
 tantivy = "0.21.1"

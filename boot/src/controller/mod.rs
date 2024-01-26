@@ -3,6 +3,7 @@ use axum::Router;
 
 pub mod global;
 pub mod organization;
+pub mod space;
 pub mod template;
 pub mod user;
 
@@ -10,6 +11,7 @@ pub fn init_user_router() -> Router {
     Router::new()
         .route("/register", post(user::register_user))
         .route("/detail", get(user::user_detail))
+        .route("/own_roles/:organization/roles/:own", get(user::own_roles))
         .route("/create_role", post(user::create_role))
         .route("/bind_role", post(user::user_bind_roles))
         .route("/unbind_role", post(user::user_unbind_roles))
@@ -35,7 +37,10 @@ pub fn init_org_router() -> Router {
 
 pub fn init_workspace_router() -> Router {
     Router::new()
-        .route("/template", post(template::find_all_template))
-        .route("/template_detail", post(template::template_detail))
         .route("/create_template", post(template::create_template))
+        .route("/find_all_template", post(template::find_all_template))
+        .route("/create_project", post(space::create_project))
+        .route("/create_project_set", post(space::create_project_set))
+        .route("/space/:space_id/members", post(space::query_space_member))
+        .route("/space/:space_id/tags", post(space::query_space_tag))
 }

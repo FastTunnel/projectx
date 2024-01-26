@@ -55,6 +55,11 @@ pub async fn init_db_pool(config: &AppConf) {
         .store(Box::into_raw(Box::new(pool)) as *mut _, Ordering::Relaxed);
 }
 
+pub async fn init_table() {
+    app_workspace::adapter::init_table().await;
+    app_user::adapter::init_table().await;
+}
+
 pub fn init_router() -> Router {
     Router::new()
         .nest(

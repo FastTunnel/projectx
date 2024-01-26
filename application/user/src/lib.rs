@@ -1,9 +1,8 @@
-use std::any::TypeId;
 use std::sync::Arc;
 
 use app_interface::system::IConfigAppService;
 use app_interface::user::IUserAppService;
-use app_interface::{app_service, APP_STATE};
+use app_interface::APP_STATE;
 use domain_user::service::UserService;
 
 use crate::adapter::client::config::ConfigFacade;

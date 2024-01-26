@@ -13,9 +13,7 @@ members = [
     "mem-event-bus"
 ]
 
-exclude = [
-    "migration"
-]
+
 
 [profile.release]
 opt-level = 'z'

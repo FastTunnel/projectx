@@ -1,4 +1,5 @@
 use app_interface::utils::ToDateTime;
+use app_interface::APP_STATE;
 use sea_orm::entity::prelude::*;
 use sea_orm::{NotSet, Set};
 
@@ -60,3 +61,26 @@ impl Into<ActiveModel> for &mut Organization {
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
+
+pub async fn init_table() {
+    let tx = APP_STATE.db_tx();
+    tx.execute_unprepared(
+        r#"
+        CREATE TABLE IF NOT EXISTS `organization` (
+            `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `identifier` VARCHAR(36) NOT NULL COMMENT '标识符',
+            `name` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '名称',
+            `pinyin` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '拼音',
+            `public` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否公开',
+            `icon` VARCHAR(255) NULL COMMENT '图标',
+            `description` VARCHAR(255) NULL COMMENT '描述',
+            `gmt_create` INT NOT NULL DEFAULT (unix_timestamp()) COMMENT '创建时间',
+            `gmt_modified` INT NULL COMMENT '修改时间',
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `identifier` (`identifier`)
+        ) comment '组织表' charset = utf8mb4 collate = utf8mb4_general_ci;
+        "#,
+    )
+    .await
+    .unwrap();
+}

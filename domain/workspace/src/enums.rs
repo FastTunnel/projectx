@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
@@ -465,5 +466,21 @@ impl Category {
             Category::Bug => "缺陷".to_string(),
             Category::Risk => "风险".to_string(),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Space {
+    ProjectSet,
+    Project,
+}
+
+impl Display for Space {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
+            Space::ProjectSet => "project_set",
+            Space::Project => "project",
+        };
+        write!(f, "{}", str)
     }
 }

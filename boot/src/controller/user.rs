@@ -1,4 +1,5 @@
 use app_interface::app_service;
+use axum::extract::Path;
 use axum::{Extension, Json};
 use axum_valid::Valid;
 
@@ -29,6 +30,17 @@ pub async fn user_detail(
     let user_app_service = app_service!(IUserAppService);
     let ret = user_app_service.user_detail(&claims.current_user()).await?;
     Ok(Json(ret))
+}
+#[tracing::instrument()]
+pub async fn own_roles(
+    Path(organization): Path<String>,
+    Path(own): Path<String>,
+) -> error::Result<Json<Vec<RoleDTO>>> {
+    let user_app_service = app_service!(IUserAppService);
+    let vec = user_app_service
+        .query_roles_by_own(&organization, Some(own))
+        .await?;
+    Ok(Json(vec))
 }
 
 #[tracing::instrument()]

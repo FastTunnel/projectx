@@ -4,7 +4,7 @@ use app_workspace::init_workspace_context_component;
 use boot::args::parse_config_from_shell;
 use boot::config::AppConf;
 use boot::index::init_index;
-use boot::{init_db_pool, init_jwt_secret_keys, init_router};
+use boot::{init_db_pool, init_jwt_secret_keys, init_router, init_table};
 use tokio::signal;
 use tracing::debug;
 use tracing::level_filters::LevelFilter;
@@ -32,6 +32,9 @@ fn main() {
 
         init_db_pool(&config).await;
         debug!("数据库连接池初始化成功");
+
+        init_table().await;
+        debug!("数据库表初始化成功");
 
         init_index(&config).await;
         debug!("全文搜索引擎初始化成功");

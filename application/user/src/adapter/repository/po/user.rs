@@ -1,4 +1,5 @@
 use app_interface::utils::ToDateTime;
+use app_interface::APP_STATE;
 use domain_user::model::User;
 use sea_orm::entity::prelude::*;
 use sea_orm::{NotSet, Set};
@@ -66,3 +67,30 @@ impl Into<ActiveModel> for &mut User {
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
+
+pub async fn init_table() {
+    let tx = APP_STATE.db_tx();
+    tx.execute_unprepared(
+        r#"  
+        CREATE TABLE IF NOT EXISTS `user` (
+          `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+          `identifier` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+          `username` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+          `password` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+          `salt` char(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+          `disabled` tinyint(1) NOT NULL DEFAULT '0',
+          `gmt_create` int NOT NULL,
+          `creator` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+          `gmt_modified` int DEFAULT NULL,
+          `modifier` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+          `last_login_at` int DEFAULT NULL,
+          `token` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `identifier` (`identifier`),
+          UNIQUE KEY `username` (`username`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表'
+        "#,
+    )
+    .await
+    .unwrap();
+}

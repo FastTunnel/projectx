@@ -1,7 +1,8 @@
-use crate::model::setting::base::{FlowItem, WorkTimeType};
+use crate::model::setting::base::FlowItem;
 use crate::model::setting::field::Field;
 use crate::model::setting::space_work_item_set::SpaceWorkItemSet;
 use crate::model::setting::status::Status;
+use crate::model::setting::work_time_type::WorkTimeType;
 use serde::{Deserialize, Serialize};
 
 pub static GLOBAL_KEY: &'static str = "/global/v1";

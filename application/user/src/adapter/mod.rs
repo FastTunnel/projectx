@@ -1,4 +1,6 @@
 pub mod client;
 pub mod publisher;
-pub(crate) mod repository;
+pub mod repository;
 mod subscriber;
+
+pub use repository::init_table;

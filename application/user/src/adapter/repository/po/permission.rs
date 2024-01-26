@@ -1,3 +1,4 @@
+use app_interface::APP_STATE;
 use sea_orm::entity::prelude::*;
 use sea_orm::{NotSet, Set};
 
@@ -46,3 +47,22 @@ impl Into<ActiveModel> for &mut Permissions {
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
+
+pub async fn init_table() {
+    let tx = APP_STATE.db_tx();
+    tx.execute_unprepared(
+        r#"
+        CREATE TABLE IF NOT EXISTS `permission` (
+            `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `key` VARCHAR(36) NOT NULL COMMENT '权限key',
+            `name` VARCHAR(36) NOT NULL COMMENT '权限名称',
+            `parent_key` VARCHAR(36) COMMENT '父权限key',
+            `is_group` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否是权限组',
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `key` (`key`)
+        ) comment '权限表' charset = utf8mb4 collate = utf8mb4_general_ci;
+        "#,
+    )
+    .await
+    .unwrap();
+}

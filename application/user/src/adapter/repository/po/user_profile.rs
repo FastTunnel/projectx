@@ -1,4 +1,5 @@
 use app_interface::utils::ToDateTime;
+use app_interface::APP_STATE;
 use sea_orm::entity::prelude::*;
 use sea_orm::{NotSet, Set};
 
@@ -81,3 +82,33 @@ impl Into<ActiveModel> for &mut UserProfile {
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
+
+pub async fn init_table() {
+    let tx = APP_STATE.db_tx();
+    tx.execute_unprepared(
+        r#"
+           CREATE TABLE IF NOT EXISTS `user_profile` (
+              `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+              `identifier` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `display_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `gmt_entry` int DEFAULT NULL,
+              `gmt_leave` int DEFAULT NULL,
+              `leave` tinyint(1) NOT NULL DEFAULT '0',
+              `email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `email_verified` tinyint(1) NOT NULL DEFAULT '0',
+              `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `birthday` int DEFAULT NULL,
+              `country` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `province` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `city` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `address` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `pinyin` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `avatar` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `identifier` (`identifier`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户资料表'
+        "#,
+    )
+    .await
+    .unwrap();
+}

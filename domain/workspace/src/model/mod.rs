@@ -1,4 +1,6 @@
+pub mod project;
 pub mod role;
 pub mod setting;
-mod user;
+pub mod tag;
+pub mod user;
 pub mod value;

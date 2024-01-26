@@ -1,14 +1,18 @@
 use std::sync::Arc;
 
 use crate::facade::{IGlobalConfigFacade, IUserFacade};
+use crate::model::project::{CreateProjectParam, CreateProjectSetParam, Project, ProjectSet};
 use crate::model::role::Role;
-use crate::model::setting::base::{FlowItem, WorkTimeType};
+use crate::model::setting::base::FlowItem;
 use crate::model::setting::field::Field;
 use crate::model::setting::global::GlobalConfig;
 use crate::model::setting::space_work_item_set::SpaceWorkItemSet;
 use crate::model::setting::status::Status;
 use crate::model::setting::template::Template;
-use crate::model::value::{CreateProjectParam, CreateProjectSetParam, CreateTemplateParam, Space};
+use crate::model::setting::work_time_type::WorkTimeType;
+use crate::model::tag::Tag;
+use crate::model::user::User;
+use crate::model::value::CreateTemplateParam;
 use crate::repository::ISpaceRepository;
 use async_trait::async_trait;
 use chrono::Utc;
@@ -40,7 +44,7 @@ pub trait IWorkspaceService<T>: Send + Sync {
         tx: &mut T,
         param: CreateProjectParam,
         creator: &str,
-    ) -> error::Result<()>;
+    ) -> error::Result<Project>;
 
     /// Creates a new project set.
     /// The `param` parameter contains the parameters for the new project set.
@@ -50,7 +54,11 @@ pub trait IWorkspaceService<T>: Send + Sync {
         tx: &mut T,
         param: CreateProjectSetParam,
         creator: &str,
-    ) -> error::Result<()>;
+    ) -> error::Result<ProjectSet>;
+
+    async fn find_space_members(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<User>>;
+
+    async fn find_space_tags(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<Tag>>;
 }
 
 /// The `WorkspaceService` struct is an implementation of the `IWorkspaceService` trait.
@@ -199,15 +207,15 @@ where
         tx: &mut T,
         param: CreateProjectParam,
         creator: &str,
-    ) -> error::Result<()> {
+    ) -> error::Result<Project> {
         let template = self
             .global_config_facade
             .find_template_by_identifier(&param.organization, &param.project_template)
             .await?
             .ok_or(error::DomainError::AppNotInitialized)?;
-        let mut project = Space::new_project(param, &template, creator)?;
-        self.space_repo.save(tx, &mut project).await?;
-        todo!()
+        let mut project = Project::new_project(param, &template, creator)?;
+        self.space_repo.save_project(tx, &mut project).await?;
+        Ok(project)
     }
 
     /// Creates a new project set.
@@ -218,14 +226,27 @@ where
         tx: &mut T,
         param: CreateProjectSetParam,
         creator: &str,
-    ) -> error::Result<()> {
+    ) -> error::Result<ProjectSet> {
         let global_config = self
             .global_config_facade
             .find_global_config_by_org(&param.organization)
             .await?
             .ok_or(error::DomainError::AppNotInitialized)?;
-        let mut project_set = Space::new_project_set(param, &global_config, creator)?;
-        self.space_repo.save(tx, &mut project_set).await?;
-        todo!()
+        let mut project_set = ProjectSet::new_project_set(param, &global_config, creator)?;
+        self.space_repo
+            .save_project_set(tx, &mut project_set)
+            .await?;
+        Ok(project_set)
+    }
+
+    async fn find_space_members(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<User>> {
+        let member_ids = self.space_repo.find_space_member_ids(tx, space_id).await?;
+        let members = self.user_facade.query_users_by_ids(&member_ids).await?;
+        Ok(members)
+    }
+
+    async fn find_space_tags(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<Tag>> {
+        let tags = self.space_repo.find_space_tags(tx, space_id).await?;
+        Ok(tags)
     }
 }

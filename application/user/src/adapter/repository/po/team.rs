@@ -1,4 +1,5 @@
 use app_interface::utils::ToDateTime;
+use app_interface::APP_STATE;
 use domain_user::model::Team;
 use sea_orm::entity::prelude::*;
 use sea_orm::{NotSet, Set};
@@ -20,6 +21,34 @@ pub struct Model {
     pub modifier: Option<String>,
     pub icon: Option<String>,
     pub leader: Option<String>,
+}
+
+pub async fn init_table() {
+    let tx = APP_STATE.db_tx();
+    tx.execute_unprepared(
+        r#"
+         CREATE TABLE IF NOT EXISTS `team` (
+              `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+              `identifier` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `description` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `organization` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `public` tinyint(1) NOT NULL DEFAULT '0',
+              `parent` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `gmt_create` int NOT NULL,
+              `creator` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `gmt_modified` int DEFAULT NULL,
+              `modifier` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `icon` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `leader` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `identifier` (`identifier`)
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='团队表'
+
+"#,
+    )
+    .await
+    .unwrap();
 }
 
 impl From<Model> for Team {
