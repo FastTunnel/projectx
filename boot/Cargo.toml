@@ -1,0 +1,46 @@
+[package]
+name = "boot"
+version = "0.1.0"
+edition = "2021"
+
+
+[[bin]]
+name = "boot"
+path = "src/main.rs"
+
+[dependencies]
+tracing = "0.1"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+clap = { version = "4.4.13", features = ["cargo"] }
+
+tokio = { version = "1.34.0", features = ["full"] }
+axum = { version = "0.7.4", features = ["json", "ws", "tracing", "multipart"] }
+tower-http = { version = "0.5.1", features = ["trace", "cors"] }
+axum-extra = { version = "0.9.1", features = ["typed-header"] }
+
+validator = { version = "0.16.1", features = ["derive"] }
+axum-valid = "0.14.0"
+
+
+
+sqlx-core = { version = "0.7.3", features = ["_rt-tokio"] }
+sea-orm = { version = "0.12.10", features = ["sqlx-mysql", "runtime-tokio", "macros", "with-chrono", ] }
+tantivy = "0.21.1"
+
+thiserror = "1.0.50"
+jsonwebtoken = "9.2.0"
+
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+toml = "0.8.8"
+
+app-interface = { path = "../crates/application/interface" }
+app-system = { path = "../crates/application/system" }
+app-user = { path = "../crates/application/user" }
+app-workspace = { path = "../crates/application/workspace" }
+
+domain-common = { path = "../crates/domain/common" }
+domain-system = { path = "../crates/domain/system" }
+domain-user = { path = "../crates/domain/user" }
+domain-workspace = { path = "../crates/domain/workspace" }
+mem-event-bus = { path = "../crates/mem-event-bus" }

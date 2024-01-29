@@ -1,0 +1,26 @@
+[package]
+name = "app-system"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+
+[dependencies]
+tracing = "0.1"
+itertools = "0.11.0"
+sea-orm = { version = "0.12.10", features = ["sqlx-mysql", "runtime-tokio", "macros", "with-chrono", ] }
+async-trait = "0.1.74"
+chrono = { version = "0.4.19", features = ["serde", "rustc-serialize"] }
+serde = { version = "1.0.193", features = ["derive"] }
+
+domain-common = { path = "../../domain/common" }
+domain-system = { path = "../../domain/system" }
+app-interface = { path = "../interface" }
+mem-event-bus = { path = "../../mem-event-bus" }
+
+
+

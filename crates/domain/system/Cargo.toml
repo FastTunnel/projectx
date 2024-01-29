@@ -1,0 +1,26 @@
+[package]
+name = "domain-system"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tracing = "0.1"
+
+async-trait = "0.1.74"
+chrono = { version = "0.4.31", features = ["serde"] }
+
+uuid = { version = "1.6.1", features = ["v4", "fast-rng"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+
+rand = "0.8.5"
+pinyin = "0.10"
+itertools = "0.11.0"
+
+domain-common = { path = "../common" }
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"

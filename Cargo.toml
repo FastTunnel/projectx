@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = [
+    "boot",
+    "crates/application/interface",
+    "crates/application/user",
+    "crates/application/system",
+    "crates/application/workspace",
+    "crates/domain/common",
+    "crates/domain/user",
+    "crates/domain/system",
+    "crates/domain/workspace",
+    "crates/mem-event-bus"
+]
+
+
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = 'abort'
+debug = false
+rpath = false
+debug-assertions = false
+strip = true

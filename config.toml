@@ -1,0 +1,14 @@
+jwt_secret = "demo"
+
+[database]
+url = "mysql://root:local@localhost:3306/demo?serverTimezone=UTC"
+max_connections = 10
+min_connections = 1
+
+[server]
+host = "0.0.0.0"
+port = 8089
+
+[full_text_search]
+index_path = "C:/Users/wang-/projectX/target"
+
