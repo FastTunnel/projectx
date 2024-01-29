@@ -1,27 +1,36 @@
 use async_trait::async_trait;
+use domain_workspace::enums::ResourceType;
+use domain_workspace::model::setting::base::FlowItem;
 
 use crate::error;
 use crate::workspace::dto::command::{
-    ProjectCreateCommand, ProjectSetCreateCommand, TemplateCreateCommand,
+    ProjectCreateCommand, ProjectSetCreateCommand, SpaceMemberAddCommand, SpaceMemberRemoveCommand,
+    TemplateCreateCommand,
 };
-use crate::workspace::dto::{ProjectDTO, ProjectSetDTO, TagDTO, TemplateDTO, UserDTO};
+use crate::workspace::dto::{
+    ProjectDTO, ProjectSetDTO, SpaceWorkItemSetDTO, TagDTO, TemplateDTO, UserDTO,
+};
 
 pub mod dto {
     use chrono::{DateTime, Utc};
     use serde::{Deserialize, Serialize};
     use validator::Validate;
 
-    use domain_workspace::enums::ResourceType;
+    use domain_workspace::enums::{Category, ResourceType};
     use domain_workspace::model::project::{Project, ProjectSet};
     use domain_workspace::model::role::Role;
+    use domain_workspace::model::setting::base::FlowItem;
+    use domain_workspace::model::setting::field::Field;
+    use domain_workspace::model::setting::space_work_item_set::SpaceWorkItemSet;
     use domain_workspace::model::setting::status::Status;
     use domain_workspace::model::setting::template::Template;
     use domain_workspace::model::tag::Tag;
     use domain_workspace::model::user::User;
 
     pub mod command {
+        use domain_workspace::enums::ResourceType;
         use serde::Deserialize;
-        use validator::Validate;
+        use validator::{Validate, ValidationError, ValidationErrors};
 
         #[derive(Debug, Deserialize, Validate)]
         pub struct TemplateCreateCommand {
@@ -53,6 +62,67 @@ pub mod dto {
             pub description: Option<String>,
             pub icon: Option<String>,
             pub organization: String,
+        }
+        #[derive(Debug, Deserialize, Validate)]
+        pub struct SpaceMemberAddCommand {
+            pub space_type: String,
+            pub user_ids: Vec<String>,
+        }
+
+        impl Validate for SpaceMemberAddCommand {
+            fn validate(&self) -> Result<(), ValidationErrors> {
+                let mut errors = ValidationErrors::new();
+                if self.space_type != ResourceType::ProjectSet.to_string()
+                    && self.space_type != ResourceType::Project
+                {
+                    errors.add(
+                        "space_type",
+                        ValidationError::new("space_type must be project or project_set"),
+                    );
+                }
+                if self.user_ids.is_empty() {
+                    errors.add(
+                        "user_ids",
+                        ValidationError::new("user_ids can not be empty"),
+                    );
+                }
+                if errors.is_empty() {
+                    Ok(())
+                } else {
+                    Err(errors)
+                }
+            }
+        }
+
+        #[derive(Debug, Deserialize, Validate)]
+        pub struct SpaceMemberRemoveCommand {
+            pub space_type: String,
+            pub user_ids: Vec<String>,
+        }
+
+        impl Validate for SpaceMemberRemoveCommand {
+            fn validate(&self) -> Result<(), ValidationErrors> {
+                let mut errors = ValidationErrors::new();
+                if self.space_type != ResourceType::ProjectSet.to_string()
+                    && self.space_type != ResourceType::Project
+                {
+                    errors.add(
+                        "space_type",
+                        ValidationError::new("space_type must be project or project_set"),
+                    );
+                }
+                if self.user_ids.is_empty() {
+                    errors.add(
+                        "user_ids",
+                        ValidationError::new("user_ids can not be empty"),
+                    );
+                }
+                if errors.is_empty() {
+                    Ok(())
+                } else {
+                    Err(errors)
+                }
+            }
         }
     }
 
@@ -110,6 +180,49 @@ pub mod dto {
                 is_project_set_role: self.is_project_set_role,
                 gmt_modified: self.gmt_modified,
                 modifier: self.modifier,
+            }
+        }
+    }
+
+    #[derive(Debug, Serialize, Deserialize, Validate)]
+    pub struct SpaceWorkItemSetDTO {
+        pub id: u64,
+        pub identifier: String,
+        pub category: Category,
+        pub creator: String,
+        pub gmt_create: DateTime<Utc>,
+        pub gmt_modified: Option<DateTime<Utc>>,
+        pub modifier: Option<String>,
+        pub name: String,
+        pub name_en: String,
+        pub display_name: String,
+        pub description: String,
+        pub space: String,
+        pub is_deleted: bool,
+        pub is_system: bool,
+        pub work_item_status_flow: Vec<FlowItem>,
+        pub organization: String,
+    }
+
+    impl Into<SpaceWorkItemSetDTO> for SpaceWorkItemSet {
+        fn into(self) -> SpaceWorkItemSetDTO {
+            SpaceWorkItemSetDTO {
+                id: self.id,
+                identifier: self.identifier,
+                category: self.category,
+                creator: self.creator,
+                gmt_create: self.gmt_create,
+                gmt_modified: self.gmt_modified,
+                modifier: self.modifier,
+                name: self.name,
+                name_en: self.name_en,
+                display_name: self.display_name,
+                description: self.description,
+                space: self.space,
+                is_deleted: self.is_deleted,
+                is_system: self.is_system,
+                work_item_status_flow: self.work_item_status_flow,
+                organization: self.organization,
             }
         }
     }
@@ -345,4 +458,29 @@ pub trait IWorkspaceAppService: Send + Sync {
     async fn query_space_member(&self, space_id: &String) -> error::Result<Vec<UserDTO>>;
 
     async fn query_space_tag(&self, space_id: &String) -> error::Result<Vec<TagDTO>>;
+
+    async fn query_space_status_flow(
+        &self,
+        space_type: &String,
+        space_id: &String,
+    ) -> error::Result<Vec<FlowItem>>;
+    async fn query_space_work_item_set(
+        &self,
+        space_id: &String,
+        category: &String,
+    ) -> error::Result<Vec<SpaceWorkItemSetDTO>>;
+
+    async fn space_member_add(
+        &self,
+        space_id: &String,
+        command: &SpaceMemberAddCommand,
+        creator: &str,
+    ) -> error::Result<()>;
+
+    async fn space_member_remove(
+        &self,
+        space_id: &String,
+        command: &SpaceMemberRemoveCommand,
+        creator: &str,
+    ) -> error::Result<()>;
 }

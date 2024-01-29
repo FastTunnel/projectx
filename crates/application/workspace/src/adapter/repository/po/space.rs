@@ -26,6 +26,7 @@ pub struct Model {
     pub template: Option<String>,
     pub status: Option<String>,
     pub resource_type: Option<String>,
+    pub status_flow: String,
 }
 
 impl From<Model> for error::Result<Project> {
@@ -87,13 +88,12 @@ impl From<Model> for error::Result<Project> {
             template,
             status_identifier: status.clone(),
             status: None,
-            project_tags: vec![],
-            project_members: vec![],
-            project_fields: vec![],
-            project_roles: vec![],
-            project_status_flow: vec![],
+            tags: vec![],
+            members: vec![],
+            fields: vec![],
+            roles: vec![],
+            status_flow: vec![],
             project_work_item_set: vec![],
-            project_work_item: vec![],
         };
         Ok(space)
     }
@@ -145,10 +145,9 @@ impl From<Model> for error::Result<ProjectSet> {
             name,
             status_identifier: status.clone(),
             status: None,
-            project_set_members: vec![],
-            project_set_roles: vec![],
-
-            project_set_status_flow: vec![],
+            members: vec![],
+            roles: vec![],
+            status_flow: vec![],
         };
         Ok(space)
     }
@@ -173,6 +172,7 @@ impl Into<ActiveModel> for ProjectSet {
             template: Set(None),
             status: Set(Some(self.status_identifier)),
             resource_type: Set(Some(ResourceType::ProjectSet.to_string())),
+            status_flow: Set(serde_json::to_string(&self.status_flow).unwrap()),
         }
     }
 }
@@ -196,6 +196,7 @@ impl Into<ActiveModel> for Project {
             template: Set(Some(self.template)),
             status: Set(Some(self.status_identifier)),
             resource_type: Set(Some(ResourceType::Project.to_string())),
+            status_flow: Set(serde_json::to_string(&self.status_flow).unwrap()),
         }
     }
 }

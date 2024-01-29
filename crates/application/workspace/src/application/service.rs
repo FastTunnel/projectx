@@ -4,13 +4,18 @@ use std::sync::Arc;
 use async_trait::async_trait;
 
 use app_interface::workspace::dto::command::{
-    ProjectCreateCommand, ProjectSetCreateCommand, TemplateCreateCommand,
+    ProjectCreateCommand, ProjectSetCreateCommand, SpaceMemberAddCommand, SpaceMemberRemoveCommand,
+    TemplateCreateCommand,
 };
-use app_interface::workspace::dto::{ProjectDTO, ProjectSetDTO, TagDTO, TemplateDTO, UserDTO};
+use app_interface::workspace::dto::{
+    ProjectDTO, ProjectSetDTO, SpaceWorkItemSetDTO, TagDTO, TemplateDTO, UserDTO,
+};
 use app_interface::workspace::IWorkspaceAppService;
 use app_interface::{error, DbTx, APP_STATE};
+use domain_workspace::enums::ResourceType;
 use domain_workspace::facade::{IGlobalConfigFacade, IUserFacade};
 use domain_workspace::model::project::{CreateProjectParam, CreateProjectSetParam};
+use domain_workspace::model::setting::base::FlowItem;
 use domain_workspace::model::setting::status::Status;
 use domain_workspace::model::value::CreateTemplateParam;
 use domain_workspace::repository::ISpaceRepository;
@@ -105,6 +110,21 @@ impl IWorkspaceAppService for WorkspaceAppService {
             .workspace_repo
             .find_all_project(&mut transaction, organization, project_set)
             .await?;
+        let status_ids = projects
+            .iter()
+            .map(|v| v.status_identifier.clone())
+            .collect::<Vec<String>>();
+        let status = self
+            .workspace_repo
+            .find_status_by_ids(&mut transaction, &status_ids)
+            .await?;
+        let status_map = status
+            .into_iter()
+            .map(|x| (x.identifier.clone(), x))
+            .collect::<HashMap<String, Status>>();
+        projects.iter_mut().for_each(|v| {
+            v.status = status_map.get(&v.status_identifier).cloned();
+        });
         transaction.commit().await?;
         let result = projects.into_iter().map(|project| project.into()).collect();
         Ok(result)
@@ -220,5 +240,73 @@ impl IWorkspaceAppService for WorkspaceAppService {
         transaction.commit().await?;
         let result = tags.into_iter().map(|tag| tag.into()).collect();
         Ok(result)
+    }
+
+    async fn query_space_status_flow(
+        &self,
+        space_type: &String,
+        space_id: &String,
+    ) -> error::Result<Vec<FlowItem>> {
+        let mut transaction = APP_STATE.db_tx().begin().await?;
+        let ret = self
+            .workspace_service
+            .find_space_status_flow(&mut transaction, space_type, space_id)
+            .await?;
+        transaction.commit().await?;
+        Ok(ret)
+    }
+
+    async fn query_space_work_item_set(
+        &self,
+        space_id: &String,
+        category: &String,
+    ) -> error::Result<Vec<SpaceWorkItemSetDTO>> {
+        let mut transaction = APP_STATE.db_tx().begin().await?;
+        let ret = self
+            .workspace_service
+            .find_space_work_item_set(&mut transaction, space_id, category)
+            .await?;
+        transaction.commit().await?;
+        Ok(ret.into_iter().map(|v| v.into()).collect())
+    }
+
+    async fn space_member_add(
+        &self,
+        space_id: &String,
+        command: &SpaceMemberAddCommand,
+        creator: &str,
+    ) -> error::Result<()> {
+        let mut transaction = APP_STATE.db_tx().begin().await?;
+        self.workspace_service
+            .add_space_member(
+                &mut transaction,
+                space_id,
+                ResourceType::from_string(command.space_type.as_str()).unwrap(),
+                &command.user_ids,
+                creator,
+            )
+            .await?;
+        transaction.commit().await?;
+        Ok(())
+    }
+
+    async fn space_member_remove(
+        &self,
+        space_id: &String,
+        command: &SpaceMemberRemoveCommand,
+        creator: &str,
+    ) -> error::Result<()> {
+        let mut transaction = APP_STATE.db_tx().begin().await?;
+        self.workspace_service
+            .remove_space_member(
+                &mut transaction,
+                space_id,
+                ResourceType::from_string(command.space_type.as_str()).unwrap(),
+                &command.user_ids,
+                creator,
+            )
+            .await?;
+        transaction.commit().await?;
+        Ok(())
     }
 }

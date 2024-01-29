@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::enums::ResourceType;
 use crate::facade::{IGlobalConfigFacade, IUserFacade};
 use crate::model::project::{CreateProjectParam, CreateProjectSetParam, Project, ProjectSet};
 use crate::model::role::Role;
@@ -59,6 +60,46 @@ pub trait IWorkspaceService<T>: Send + Sync {
     async fn find_space_members(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<User>>;
 
     async fn find_space_tags(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<Tag>>;
+
+    async fn find_space_status_flow(
+        &self,
+        tx: &mut T,
+        space_type: &String,
+        space_id: &String,
+    ) -> error::Result<Vec<FlowItem>>;
+
+    async fn find_space_work_item_set(
+        &self,
+        tx: &mut T,
+        space_id: &String,
+        category: &String,
+    ) -> error::Result<Vec<SpaceWorkItemSet>>;
+
+    async fn find_project_by_id(&self, tx: &mut T, id: &String) -> error::Result<Option<Project>>;
+
+    async fn find_project_set_by_id(
+        &self,
+        tx: &mut T,
+        id: &String,
+    ) -> error::Result<Option<ProjectSet>>;
+
+    async fn add_space_member(
+        &self,
+        tx: &mut T,
+        space_id: &String,
+        resource_type: ResourceType,
+        member_ids: &[String],
+        operator: &str,
+    ) -> error::Result<()>;
+
+    async fn remove_space_member(
+        &self,
+        tx: &mut T,
+        space_id: &String,
+        resource_type: ResourceType,
+        member_ids: &[String],
+        operator: &str,
+    ) -> error::Result<()>;
 }
 
 /// The `WorkspaceService` struct is an implementation of the `IWorkspaceService` trait.
@@ -140,7 +181,6 @@ where
         self.global_config_facade
             .save_templates(&mut templates)
             .await?;
-
         Ok(())
     }
 
@@ -248,5 +288,121 @@ where
     async fn find_space_tags(&self, tx: &mut T, space_id: &String) -> error::Result<Vec<Tag>> {
         let tags = self.space_repo.find_space_tags(tx, space_id).await?;
         Ok(tags)
+    }
+
+    async fn find_space_status_flow(
+        &self,
+        tx: &mut T,
+        space_type: &String,
+        space_id: &String,
+    ) -> error::Result<Vec<FlowItem>> {
+        let status_flow = if space_type == &ResourceType::Project.to_string() {
+            self.space_repo
+                .find_project_set_by_id(tx, space_id)
+                .await?
+                .map(|v| v.status_flow)
+        } else if space_type == &ResourceType::ProjectSet.to_string() {
+            self.space_repo
+                .find_project_set_by_id(tx, space_id)
+                .await?
+                .map(|v| v.status_flow)
+        } else {
+            None
+        };
+        Ok(status_flow.unwrap_or_default())
+    }
+
+    async fn find_space_work_item_set(
+        &self,
+        tx: &mut T,
+        space_id: &String,
+        category: &String,
+    ) -> error::Result<Vec<SpaceWorkItemSet>> {
+        Ok(self
+            .space_repo
+            .find_space_work_item_sets(tx, space_id, category)
+            .await?)
+    }
+
+    async fn find_project_by_id(&self, tx: &mut T, id: &String) -> error::Result<Option<Project>> {
+        let project = self.space_repo.find_project_by_id(tx, id).await?;
+        Ok(project)
+    }
+
+    async fn find_project_set_by_id(
+        &self,
+        tx: &mut T,
+        id: &String,
+    ) -> error::Result<Option<ProjectSet>> {
+        let project_set = self.space_repo.find_project_set_by_id(tx, id).await?;
+        Ok(project_set)
+    }
+
+    async fn add_space_member(
+        &self,
+        tx: &mut T,
+        space_id: &String,
+        resource_type: ResourceType,
+        member_ids: &[String],
+        operator: &str,
+    ) -> error::Result<()> {
+        match resource_type {
+            ResourceType::ProjectSet => {
+                let mut project_set = self
+                    .space_repo
+                    .find_project_set_by_id(tx, space_id)
+                    .await?
+                    .ok_or(error::DomainError::DataNotFound)?;
+
+                Ok(())
+            }
+            ResourceType::Project => {
+                let mut project = self
+                    .space_repo
+                    .find_project_by_id(tx, space_id)
+                    .await?
+                    .ok_or(error::DomainError::DataNotFound)?;
+                Ok(())
+            }
+            _ => {
+                return Err(error::DomainError::InnerError(
+                    "Invalid resource type".to_string(),
+                ))
+            }
+        }
+    }
+
+    async fn remove_space_member(
+        &self,
+        tx: &mut T,
+        space_id: &String,
+        resource_type: ResourceType,
+        member_ids: &[String],
+        operator: &str,
+    ) -> error::Result<()> {
+        match resource_type {
+            ResourceType::ProjectSet => {
+                let mut project_set = self
+                    .space_repo
+                    .find_project_set_by_id(tx, space_id)
+                    .await?
+                    .ok_or(error::DomainError::DataNotFound)?;
+
+                Ok(())
+            }
+            ResourceType::Project => {
+                let mut project = self
+                    .space_repo
+                    .find_project_by_id(tx, space_id)
+                    .await?
+                    .ok_or(error::DomainError::DataNotFound)?;
+                Ok(())
+            }
+            _ => {
+                return Err(error::DomainError::InnerError(
+                    "Invalid resource type".to_string(),
+                ))
+            }
+        }
     }
 }

@@ -4,3 +4,4 @@ pub(crate) mod space;
 pub(crate) mod space_member;
 pub(crate) mod status;
 pub(crate) mod tag;
+pub(crate) mod work_item_set;

@@ -1,4 +1,5 @@
 use crate::model::project::{Project, ProjectSet};
+use crate::model::setting::space_work_item_set::SpaceWorkItemSet;
 use crate::model::setting::status::Status;
 use crate::model::tag::Tag;
 use async_trait::async_trait;
@@ -21,6 +22,14 @@ pub trait ISpaceRepository: Repository {
         tx: &mut Self::Transaction,
         organization: &String,
     ) -> error::Result<Vec<ProjectSet>>;
+
+    async fn find_space_work_item_sets(
+        &self,
+        tx: &mut Self::Transaction,
+        space_id: &String,
+        category: &String,
+    ) -> error::Result<Vec<SpaceWorkItemSet>>;
+
     async fn find_all_project(
         &self,
         tx: &mut Self::Transaction,

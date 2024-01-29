@@ -41,6 +41,14 @@ pub fn init_workspace_router() -> Router {
         .route("/find_all_template", post(template::find_all_template))
         .route("/create_project", post(space::create_project))
         .route("/create_project_set", post(space::create_project_set))
-        .route("/space/:space_id/members", post(space::query_space_member))
-        .route("/space/:space_id/tags", post(space::query_space_tag))
+        .route("/space/:space_id/members", get(space::query_space_member))
+        .route("/space/:space_id/tags", get(space::query_space_tag))
+        .route(
+            "/space/:space_type/:space_id/status_flow",
+            get(space::query_space_status_flow),
+        )
+        .route(
+            "/space/:space_id/work_item_set",
+            get(space::query_space_work_item_set),
+        )
 }
