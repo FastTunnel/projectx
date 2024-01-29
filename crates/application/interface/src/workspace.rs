@@ -63,7 +63,7 @@ pub mod dto {
             pub icon: Option<String>,
             pub organization: String,
         }
-        #[derive(Debug, Deserialize, Validate)]
+        #[derive(Debug, Deserialize)]
         pub struct SpaceMemberAddCommand {
             pub space_type: String,
             pub user_ids: Vec<String>,
@@ -73,7 +73,7 @@ pub mod dto {
             fn validate(&self) -> Result<(), ValidationErrors> {
                 let mut errors = ValidationErrors::new();
                 if self.space_type != ResourceType::ProjectSet.to_string()
-                    && self.space_type != ResourceType::Project
+                    || self.space_type != ResourceType::ProjectSet.to_string()
                 {
                     errors.add(
                         "space_type",
@@ -94,7 +94,7 @@ pub mod dto {
             }
         }
 
-        #[derive(Debug, Deserialize, Validate)]
+        #[derive(Debug, Deserialize)]
         pub struct SpaceMemberRemoveCommand {
             pub space_type: String,
             pub user_ids: Vec<String>,
@@ -104,7 +104,7 @@ pub mod dto {
             fn validate(&self) -> Result<(), ValidationErrors> {
                 let mut errors = ValidationErrors::new();
                 if self.space_type != ResourceType::ProjectSet.to_string()
-                    && self.space_type != ResourceType::Project
+                    || self.space_type != ResourceType::Project.to_string()
                 {
                     errors.add(
                         "space_type",
