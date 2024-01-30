@@ -12,7 +12,6 @@ use app_interface::workspace::dto::{
     ProjectDTO, ProjectSetDTO, SpaceWorkItemSetDTO, TagDTO, UserDTO,
 };
 use app_interface::workspace::IWorkspaceAppService;
-use domain_workspace::enums::ResourceType;
 use domain_workspace::model::setting::base::FlowItem;
 
 use crate::error;
@@ -25,6 +24,7 @@ pub async fn query_space_member(Path(space_id): Path<String>) -> error::Result<J
     ))
 }
 
+#[tracing::instrument()]
 pub async fn space_member_add(
     Extension(claims): Extension<Claims>,
     Path(space_id): Path<String>,
@@ -36,6 +36,8 @@ pub async fn space_member_add(
         .await?;
     Ok(())
 }
+
+#[tracing::instrument()]
 pub async fn space_member_remove(
     Extension(claims): Extension<Claims>,
     Path(space_id): Path<String>,

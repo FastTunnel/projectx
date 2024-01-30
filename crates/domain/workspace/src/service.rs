@@ -348,21 +348,16 @@ where
     ) -> error::Result<()> {
         match resource_type {
             ResourceType::ProjectSet => {
-                let mut project_set = self
-                    .space_repo
+                self.space_repo
                     .find_project_set_by_id(tx, space_id)
                     .await?
                     .ok_or(error::DomainError::DataNotFound)?;
-
-                Ok(())
             }
             ResourceType::Project => {
-                let mut project = self
-                    .space_repo
+                self.space_repo
                     .find_project_by_id(tx, space_id)
                     .await?
                     .ok_or(error::DomainError::DataNotFound)?;
-                Ok(())
             }
             _ => {
                 return Err(error::DomainError::InnerError(
@@ -370,6 +365,10 @@ where
                 ))
             }
         }
+        self.space_repo
+            .add_space_member(tx, space_id, member_ids, operator)
+            .await?;
+        Ok(())
     }
 
     async fn remove_space_member(
@@ -382,21 +381,16 @@ where
     ) -> error::Result<()> {
         match resource_type {
             ResourceType::ProjectSet => {
-                let mut project_set = self
-                    .space_repo
+                self.space_repo
                     .find_project_set_by_id(tx, space_id)
                     .await?
                     .ok_or(error::DomainError::DataNotFound)?;
-
-                Ok(())
             }
             ResourceType::Project => {
-                let mut project = self
-                    .space_repo
+                self.space_repo
                     .find_project_by_id(tx, space_id)
                     .await?
                     .ok_or(error::DomainError::DataNotFound)?;
-                Ok(())
             }
             _ => {
                 return Err(error::DomainError::InnerError(
@@ -404,5 +398,9 @@ where
                 ))
             }
         }
+        self.space_repo
+            .remove_space_member(tx, space_id, member_ids, operator)
+            .await?;
+        Ok(())
     }
 }

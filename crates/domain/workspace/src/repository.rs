@@ -66,4 +66,20 @@ pub trait ISpaceRepository: Repository {
         tx: &mut Self::Transaction,
         space: &mut ProjectSet,
     ) -> error::Result<()>;
+
+    async fn add_space_member(
+        &self,
+        tx: &mut Self::Transaction,
+        space_id: &String,
+        member_ids: &[String],
+        operator: &str,
+    ) -> error::Result<()>;
+
+    async fn remove_space_member(
+        &self,
+        tx: &mut Self::Transaction,
+        space_id: &String,
+        member_ids: &[String],
+        operator: &str,
+    ) -> error::Result<()>;
 }

@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, QueryTrait};
+use sea_orm::ActiveValue::Set;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, NotSet, QueryFilter, QueryTrait};
 
 use crate::adapter::repository::po;
 use app_interface::define_repo;
@@ -201,6 +202,47 @@ impl ISpaceRepository for SpaceRepository {
     ) -> error::Result<()> {
         let po: space::ActiveModel = space.clone().into();
         po.save(tx)
+            .await
+            .map_err(|e| error::DomainError::DatabaseError(e.into()))?;
+        Ok(())
+    }
+
+    async fn add_space_member(
+        &self,
+        tx: &mut Self::Transaction,
+        space_id: &String,
+        member_ids: &[String],
+        _operator: &str,
+    ) -> error::Result<()> {
+        space_member::Entity::insert_many(
+            member_ids
+                .iter()
+                .map(|v| space_member::ActiveModel {
+                    id: NotSet,
+                    space: Set(space_id.clone()),
+                    member: Set(v.clone()),
+                })
+                .collect::<Vec<space_member::ActiveModel>>(),
+        )
+        .exec(tx)
+        .await
+        .map_err(|e| error::DomainError::DatabaseError(e.into()))?;
+        Ok(())
+    }
+    async fn remove_space_member(
+        &self,
+        tx: &mut Self::Transaction,
+        space_id: &String,
+        member_ids: &[String],
+        _operator: &str,
+    ) -> error::Result<()> {
+        space_member::Entity::delete_many()
+            .filter(
+                space_member::Column::Space
+                    .eq(space_id)
+                    .and(space_member::Column::Member.is_in(member_ids)),
+            )
+            .exec(tx)
             .await
             .map_err(|e| error::DomainError::DatabaseError(e.into()))?;
         Ok(())

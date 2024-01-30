@@ -51,4 +51,9 @@ pub fn init_workspace_router() -> Router {
             "/space/:space_id/work_item_set",
             get(space::query_space_work_item_set),
         )
+        .route("/space/:space_id/member/add", post(space::space_member_add))
+        .route(
+            "/space/:space_id/member/delete",
+            post(space::space_member_remove),
+        )
 }
